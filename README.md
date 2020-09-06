@@ -1,20 +1,28 @@
+![CircleCI](https://img.shields.io/circleci/build/github/bukosabino/ta/master)
+[![Documentation Status](https://readthedocs.org/projects/technical-analysis-library-in-python/badge/?version=latest)](https://technical-analysis-library-in-python.readthedocs.io/en/latest/?badge=latest)
+[![Coverage Status](https://coveralls.io/repos/github/bukosabino/ta/badge.svg)](https://coveralls.io/github/bukosabino/ta)
+![PyPI](https://img.shields.io/pypi/v/ta)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/ta)
+[![Donate PayPal](https://img.shields.io/badge/Donate%20%24-PayPal-brightgreen.svg)](https://www.paypal.me/guau/3)
+
 # Technical Analysis Library in Python
 
-It is a Technical Analysis library to financial time series datasets (open, close, high, low, volume). You can use it to do feature engineering from financial datasets. It is builded on Python Pandas library.
+It is a Technical Analysis library useful to do feature engineering from financial time series datasets (Open, Close, High, Low, Volume). It is built on Pandas and Numpy.
 
-![alt text](https://raw.githubusercontent.com/bukosabino/ta/master/doc/figure.png)
+![Bollinger Bands graph example](doc/figure.png)
 
-The library has implemented 25 indicators and 48 features:
+The library has implemented 34 indicators:
 
 #### Volume
 
 * Accumulation/Distribution Index (ADI)
 * On-Balance Volume (OBV)
-* On-Balance Volume mean (OBV mean)
 * Chaikin Money Flow (CMF)
 * Force Index (FI)
 * Ease of Movement (EoM, EMV)
 * Volume-price Trend (VPT)
+* Negative Volume Index (NVI)
+* Volume Weighted Average Price (VWAP)
 
 #### Volatility
 
@@ -34,16 +42,24 @@ The library has implemented 25 indicators and 48 features:
 * Detrended Price Oscillator (DPO)
 * KST Oscillator (KST)
 * Ichimoku Kinkō Hyō (Ichimoku)
+* Parabolic Stop And Reverse (Parabolic SAR)
 
 #### Momentum
 
 * Money Flow Index (MFI)
 * Relative Strength Index (RSI)
 * True strength index (TSI)
+* Ultimate Oscillator (UO)
+* Stochastic Oscillator (SR)
+* Williams %R (WR)
+* Awesome Oscillator (AO)
+* Kaufman's Adaptive Moving Average (KAMA)
+* Rate of Change (ROC)
 
 #### Others
 
 * Daily Return (DR)
+* Daily Log Return (DLR)
 * Cumulative Return (CR)
 
 
@@ -51,20 +67,20 @@ The library has implemented 25 indicators and 48 features:
 
 https://technical-analysis-library-in-python.readthedocs.io/en/latest/
 
+
 # Motivation to use
 
-* English: https://towardsdatascience.com/technical-analysis-library-to-financial-datasets-with-pandas-python-4b2b390d3543
-* Spanish: https://medium.com/datos-y-ciencia/biblioteca-de-an%C3%A1lisis-t%C3%A9cnico-sobre-series-temporales-financieras-para-machine-learning-con-cb28f9427d0
+* [English](https://towardsdatascience.com/technical-analysis-library-to-financial-datasets-with-pandas-python-4b2b390d3543)
+* [Spanish](https://medium.com/datos-y-ciencia/biblioteca-de-an%C3%A1lisis-t%C3%A9cnico-sobre-series-temporales-financieras-para-machine-learning-con-cb28f9427d0)
 
-# How to use (python 3)
+
+# How to use (Python 3)
 
 ```sh
-> virtualenv -p python3 virtualenvironment
-> source virtualenvironment/bin/activate
-> pip install ta
+$ pip install --upgrade ta
 ```
 
-To use this library you should have a financial time series dataset including “Timestamp”, “Open”, “High”, “Low”, “Close” and “Volume” columns.
+To use this library you should have a financial time series dataset including `Timestamp`, `Open`, `High`, `Low`, `Close` and `Volume` columns.
 
 You should clean or fill NaN values in your dataset before add technical analysis features.
 
@@ -72,48 +88,78 @@ You can get code examples in [examples_to_use](https://github.com/bukosabino/ta/
 
 You can visualize the features in [this notebook](https://github.com/bukosabino/ta/blob/master/examples_to_use/visualize_features.ipynb).
 
+
 #### Example adding all features
 
 ```python
 import pandas as pd
-from ta import *
+from ta import add_all_ta_features
+from ta.utils import dropna
+
 
 # Load datas
-df = pd.read_csv('your-file.csv', sep=',')
+df = pd.read_csv('ta/tests/data/datas.csv', sep=',')
 
 # Clean NaN values
-df = utils.dropna(df)
+df = dropna(df)
 
-# Add ta features filling NaN values
-df = add_all_ta_features(df, "Open", "High", "Low", "Close", "Volume_BTC", fillna=True)
+# Add all ta features
+df = add_all_ta_features(
+    df, open="Open", high="High", low="Low", close="Close", volume="Volume_BTC")
 ```
 
 
-#### Example adding individual features
+#### Example adding particular feature
 
 ```python
 import pandas as pd
-from ta import *
+from ta.utils import dropna
+from ta.volatility import BollingerBands
+
 
 # Load datas
-df = pd.read_csv('your-file.csv', sep=',')
+df = pd.read_csv('ta/tests/data/datas.csv', sep=',')
 
 # Clean NaN values
-df = utils.dropna(df)
+df = dropna(df)
 
-# Add bollinger band high indicator filling NaN values
-df['bb_high_indicator'] = bollinger_hband_indicator(df["Close"], n=20, ndev=2, fillna=True)
+# Initialize Bollinger Bands Indicator
+indicator_bb = BollingerBands(close=df["Close"], n=20, ndev=2)
 
-# Add bollinger band low indicator filling NaN values
-df['bb_low_indicator'] = bollinger_lband_indicator(df["Close"], n=20, ndev=2, fillna=True)
+# Add Bollinger Bands features
+df['bb_bbm'] = indicator_bb.bollinger_mavg()
+df['bb_bbh'] = indicator_bb.bollinger_hband()
+df['bb_bbl'] = indicator_bb.bollinger_lband()
+
+# Add Bollinger Band high indicator
+df['bb_bbhi'] = indicator_bb.bollinger_hband_indicator()
+
+# Add Bollinger Band low indicator
+df['bb_bbli'] = indicator_bb.bollinger_lband_indicator()
+
+# Add Width Size Bollinger Bands
+df['bb_bbw'] = indicator_bb.bollinger_wband()
+
+# Add Percentage Bollinger Bands
+df['bb_bbp'] = indicator_bb.bollinger_pband()
 ```
 
 
-# Deploy to developers
+# Deploy and develop (for developers)
 
 ```sh
-> pip install -r requirements.txt
+$ git clone https://github.com/bukosabino/ta.git
+$ cd ta
+$ pip install -r play-requirements.txt
+$ make test
 ```
+
+
+# Sponsor
+
+![Logo OpenSistemas](doc/logo_neuroons_byOS_blue.png)
+
+Thank you to [OpenSistemas](https://opensistemas.com)! It is because of your contribution that I am able to continue the development of this open source library.
 
 
 # Based on:
@@ -124,13 +170,24 @@ df['bb_low_indicator'] = bollinger_lband_indicator(df["Close"], n=20, ndev=2, fi
 * https://github.com/femtotrader/pandas_talib
 
 
+# In Progress:
+
+* Automated tests for all the indicators.
+
+
 # TODO:
 
-* add more technical analysis features
-* use dask library to parallelize
+* Use [NumExpr](https://github.com/pydata/numexpr) to speed up the NumPy/Pandas operations? [Article Motivation](https://towardsdatascience.com/speed-up-your-numpy-and-pandas-with-numexpr-package-25bd1ab0836b)
+* Add [more technical analysis features](https://en.wikipedia.org/wiki/Technical_analysis).
+* Wrapper to get financial data.
+* Use of the Pandas multi-indexing techniques to calculate several indicators at the same time.
+* Use Plotly/Streamlit to visualize features
+
 
 # Credits:
 
-Developed by Bukosabino at Lecrin Technologies - http://lecrintech.com
+Developed by Darío López Padial (aka Bukosabino) and [other contributors](https://github.com/bukosabino/ta/graphs/contributors).
 
-Please, let us know about any comment or feedback.
+Please, let me know about any comment or feedback.
+
+Also, I am a software engineer freelance focused on Data Science using Python tools such as Pandas, Scikit-Learn, Backtrader, Zipline or Catalyst. Don't hesitate to contact me if you need something related with this library, Python, Technical Analysis, AlgoTrading, Machine Learning, etc.

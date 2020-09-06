@@ -8,7 +8,7 @@ Welcome to Technical Analysis Library in Python's documentation!
 
 It is a Technical Analysis library to financial time series datasets (open, close, high, low, volume). You can use it to do feature engineering from financial datasets. It is builded on Python Pandas library.
 
-Installation (python 3)
+Installation (python >= v3.6)
 =========================
 
 .. code-block:: bash
@@ -20,42 +20,50 @@ Installation (python 3)
 Examples
 ==================
 
-Adding all features:
+Example adding all features:
+
+.. code-block:: python
+
+    import pandas as pd
+    import ta
+
+    # Load datas
+    df = pd.read_csv('ta/tests/data/datas.csv', sep=',')
+
+    # Clean NaN values
+    df = ta.utils.dropna(df)
+
+    # Add ta features filling NaN values
+    df = ta.add_all_ta_features(
+        df, open="Open", high="High", low="Low", close="Close", volume="Volume_BTC", fillna=True)
+
+
+Example adding a particular feature:
 
 .. code-block:: python
 
    import pandas as pd
-   from ta import *
+   import ta
 
    # Load datas
-   df = pd.read_csv('your-file.csv', sep=',')
+   df = pd.read_csv('ta/tests/data/datas.csv', sep=',')
 
-   # Clean nan values
-   df = utils.dropna(df)
+   # Clean NaN values
+   df = ta.utils.dropna(df)
 
-   # Add ta features filling Nans values
-   df = add_all_ta_features(df, "Open", "High", "Low", "Close", "Volume_BTC", fillna=True)
+   # Initialize Bollinger Bands Indicator
+   indicator_bb = ta.volatility.BollingerBands(close=df["Close"], n=20, ndev=2)
 
+   # Add Bollinger Bands features
+   df['bb_bbm'] = indicator_bb.bollinger_mavg()
+   df['bb_bbh'] = indicator_bb.bollinger_hband()
+   df['bb_bbl'] = indicator_bb.bollinger_lband()
 
-Adding individual features:
+   # Add Bollinger Band high indicator
+   df['bb_bbhi'] = indicator_bb.bollinger_hband_indicator()
 
-.. code-block:: python
-
-   import pandas as pd
-   from ta import *
-
-   # Load datas
-   df = pd.read_csv('your-file.csv', sep=',')
-
-   # Clean nan values
-   df = utils.dropna(df)
-
-   # Add bollinger band high indicator filling Nans values
-   df['bb_high_indicator'] = bollinger_hband_indicator(df["Close"], n=20, ndev=2, fillna=True)
-
-   # Add bollinger band low indicator filling Nans values
-   df['bb_low_indicator'] = bollinger_lband_indicator(df["Close"], n=20, ndev=2, fillna=True)
-
+   # Add Bollinger Band low indicator
+   df['bb_bbli'] = indicator_bb.bollinger_lband_indicator()
 
 Motivation
 ==================

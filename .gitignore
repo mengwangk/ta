@@ -6,9 +6,6 @@ __pycache__/
 # C extensions
 *.so
 
-data/
-env_ta/
-
 .DS_Store
 
 # Distribution / packaging
@@ -91,6 +88,8 @@ celerybeat-schedule
 .venv
 venv/
 ENV/
+env/**
+env*
 
 # Spyder project settings
 .spyderproject
@@ -104,3 +103,9 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# vscode settings
+.vscode/**
+
+# Original Source (Dev)
+ta/_wrapper.py
